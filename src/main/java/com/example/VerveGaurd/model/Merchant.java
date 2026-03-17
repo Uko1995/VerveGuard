@@ -15,7 +15,21 @@ public class Merchant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
 
+    @Column(nullable = false)
+    private String cardNumber;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private String email;
+
+    private static final short blacklistDurationMinutes = 5;
 
     private boolean isBlacklisted = false;
+
+    private LocalDateTime blacklistedAt;
     private LocalDateTime createdAt;
+
+
 }

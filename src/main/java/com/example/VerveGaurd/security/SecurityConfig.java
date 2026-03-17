@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/transactions/**").permitAll()
                         .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/api/merchants").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess

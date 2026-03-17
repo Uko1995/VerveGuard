@@ -3,6 +3,7 @@ package com.example.VerveGaurd.service;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,7 +19,7 @@ public class RateLimiterService {
 
     public boolean isRateLimited(String ipAddress) {
         long now = System.currentTimeMillis();
-        requestCounts.putIfAbsent(ipAddress, new ArrayList<>());
+        requestCounts.putIfAbsent(ipAddress, Collections.synchronizedList( new ArrayList<>()));
         List<Long> timestamps = requestCounts.get(ipAddress);
         timestamps.removeIf(timestamp -> now - timestamp > one_minute_in_ms);
 

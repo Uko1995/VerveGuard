@@ -1,8 +1,10 @@
-package com.example.VerveGaurd.service;
+ package com.example.VerveGaurd.service;
 
 import com.example.VerveGaurd.dto.Status;
 import com.example.VerveGaurd.dto.TransactionRequestDTO;
 import com.example.VerveGaurd.dto.TransactionResponseDTO;
+import com.example.VerveGaurd.exception.MerchantNotFoundException;
+import com.example.VerveGaurd.exception.TransactionProcessingException;
 import com.example.VerveGaurd.repository.MerchantRepository;
 import com.example.VerveGaurd.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,9 @@ public class TransactionService {
     }
 
     public TransactionResponseDTO processTransaction(TransactionRequestDTO dto) {
+        //validate that merchant actually exists in the table
+        merchantRepository.findById(dto.getMerchantId()).orElseThrow(() -> new MerchantNotFoundException(dto.getMerchantId()));
+
         boolean isFlagged = false;
         String reason = null;
 
@@ -44,7 +49,11 @@ public class TransactionService {
 
         //log to repository if blacklisted and rate limited
         if(isFlagged) {
-            transactionRepository.save(dto, true, reason);
+            try {
+                transactionRepository.save(dto, true, reason);
+            } catch (Exception e) {
+                throw new TransactionProcessingException("Failed to log flagged merchant" + e.getMessage());
+            }
             response.setStatus(Status.FLAGGED);
             return response;
         }
