@@ -18,6 +18,8 @@ public class Merchant {
     @Column(nullable = false)
     private String cardNumber;
 
+
+
     @Column(nullable = false)
     private String name;
 
@@ -30,6 +32,14 @@ public class Merchant {
 
     private LocalDateTime blacklistedAt;
     private LocalDateTime createdAt;
+
+    public boolean isBlacklistExpired() {
+        if (!isBlacklisted || blacklistedAt == null) {
+            return false;
+        }
+        LocalDateTime expiryTime = blacklistedAt.plusMinutes(blacklistDurationMinutes);
+        return LocalDateTime.now().isAfter(expiryTime);
+    }
 
 
 }

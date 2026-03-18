@@ -1,5 +1,6 @@
 package com.example.VerveGaurd.model;
 
+import com.example.VerveGaurd.dto.Status;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,10 @@ public class transactionRequest {
     private String cardNumber;
     private BigDecimal amount;
     private String ipAddress;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "merchantId", nullable = false)

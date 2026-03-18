@@ -10,9 +10,10 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "admins")
+@Table(name = "Admin")
 public class Admin {
     @Id
+    @Column(name = "Id", nullable = false, updatable = false)
     private String Id;
 
     private String name;

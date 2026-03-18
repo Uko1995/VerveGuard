@@ -5,6 +5,7 @@ import com.example.VerveGaurd.dto.TransactionRequestDTO;
 import com.example.VerveGaurd.dto.TransactionResponseDTO;
 import com.example.VerveGaurd.exception.MerchantNotFoundException;
 import com.example.VerveGaurd.exception.TransactionProcessingException;
+import com.example.VerveGaurd.model.Merchant;
 import com.example.VerveGaurd.repository.MerchantRepository;
 import com.example.VerveGaurd.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -23,22 +24,28 @@ public class TransactionService {
         this.rateLimiterService = rateLimiterService;
     }
 
-    public TransactionResponseDTO processTransaction(TransactionRequestDTO dto) {
+    public TransactionResponseDTO processTransaction(TransactionRequestDTO dto, String ipAddress) {
         //validate that merchant actually exists in the table
-        merchantRepository.findById(dto.getMerchantId()).orElseThrow(() -> new MerchantNotFoundException(dto.getMerchantId()));
+        Merchant merchant = merchantRepository.findById(dto.getMerchantId()).orElseThrow(() -> new MerchantNotFoundException(dto.getMerchantId()));
 
         boolean isFlagged = false;
         String reason = null;
 
         // check 1: if merchant is already blacklisted
-        boolean blacklisted = merchantRepository.findBlacklistedMerchantById(dto.getMerchantId()).isPresent();
-        if (blacklisted) {
-            isFlagged = true;
-            reason = "BLACKLISTED MERCHANT";
+        if (merchant.isBlacklisted()) {
+            if(merchant.isBlacklistExpired()) {
+                // blacklist has expired
+                merchant.setBlacklisted(false);
+                merchant.setBlacklistedAt(null);
+                merchantRepository.save(merchant);
+            } else {
+                isFlagged = true;
+                reason = "BLACKLISTED MERCHANT";
+            }
         }
 
         // check 2: check rate limiting by IP
-        if (rateLimiterService.isRateLimited(dto.getIpAddress())) {
+        if (rateLimiterService.isRateLimited(ipAddress)) {
             isFlagged = true;
             reason = reason != null ? reason + ", RATE LIMITED" : "RATE LIMITED";
         }
@@ -50,7 +57,7 @@ public class TransactionService {
         //log to repository if blacklisted and rate limited
         if(isFlagged) {
             try {
-                transactionRepository.save(dto, true, reason);
+                transactionRepository.save(dto, true, reason, ipAddress);
             } catch (Exception e) {
                 throw new TransactionProcessingException("Failed to log flagged merchant" + e.getMessage());
             }

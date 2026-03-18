@@ -11,5 +11,4 @@ public class TransactionRequestDTO {
     private String cardNumber;
     private BigDecimal amount;
     private Long merchantId;
-    private String ipAddress;
 }

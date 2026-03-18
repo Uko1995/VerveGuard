@@ -34,7 +34,7 @@ public class MerchantService {
             merchant.setBlacklisted(false);
             merchant.setCardNumber(dto.getCardNumber());
             merchant.setCreatedAt(LocalDateTime.now());
-            merchant.setBlacklistDuration(300_000);
+            merchant.setBlacklistedAt(null);
             return merchant;
         }).toList();
 
