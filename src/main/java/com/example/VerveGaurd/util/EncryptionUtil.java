@@ -17,6 +17,8 @@ public class EncryptionUtil {
     @Value("${encryption.secret}")
     private String secret;
 
+
+
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
 

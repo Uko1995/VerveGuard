@@ -1,6 +1,13 @@
 package com.example.VerveGaurd.controller;
 
+import com.example.VerveGaurd.dto.AdminLoginDTO;
+import com.example.VerveGaurd.dto.AdminResponseDTO;
+import com.example.VerveGaurd.dto.CreateAdminRequestDto;
+import com.example.VerveGaurd.dto.LoginResponseDTO;
+import com.example.VerveGaurd.resposne.ApiResponse;
 import com.example.VerveGaurd.security.JwtUtil;
+import com.example.VerveGaurd.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,29 +19,29 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final JwtUtil jwtUtil;
-    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
-        this.jwtUtil = jwtUtil;
-        this.passwordEncoder = passwordEncoder;
+    private final AuthService authService;
+
+    public AuthController( AuthService authService) {
+
+        this.authService = authService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> body) {
-        String username = body.get("username");
-        String password = body.get("password");
+    public ResponseEntity<ApiResponse<LoginResponseDTO>> login(@Valid @RequestBody AdminLoginDTO body) {
+        LoginResponseDTO response = authService.login(body);
 
-        // hardcoded for now — replace with DB lookup in production
-        String storedHashedPassword = passwordEncoder.encode("password123");
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response, "Login successful"));
+    }
 
-        if ("admin".equals(username) && passwordEncoder.matches(password, storedHashedPassword)) {
-            String token = jwtUtil.generateToken(username);
-            return ResponseEntity.ok(Map.of("token", token));
-        }
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Invalid username or password"));
+
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<AdminResponseDTO>> createAdmin(@Valid @RequestBody CreateAdminRequestDto request) {
+        AdminResponseDTO admin = authService.createAdmin(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(admin, "Admin has been created successfully"));
     }
 
 

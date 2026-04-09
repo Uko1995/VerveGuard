@@ -41,7 +41,8 @@ public class TransactionRepository {
                 m.email,
                 t.reason,
                 t.isFlagged,
-                t.status
+                t.status,
+                t.createdAt
             FROM transactionRequests t
             JOIN Merchant m ON t.merchantId = m.id
             WHERE t.isFlagged = 1
@@ -54,6 +55,7 @@ public class TransactionRepository {
             response.setReason(rs.getString("reason"));
             response.setIsFlagged(rs.getBoolean("isFlagged"));
             response.setStatus(Status.valueOf(rs.getString("status")));
+            response.setCreatedAt(rs.getTimestamp("createdAt").toLocalDateTime());
             return response;
         });
 

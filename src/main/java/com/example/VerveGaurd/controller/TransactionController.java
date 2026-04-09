@@ -2,6 +2,7 @@ package com.example.VerveGaurd.controller;
 
 import com.example.VerveGaurd.dto.TransactionRequestDTO;
 import com.example.VerveGaurd.dto.TransactionResponseDTO;
+import com.example.VerveGaurd.resposne.ApiResponse;
 import com.example.VerveGaurd.service.TransactionService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;
@@ -23,13 +24,13 @@ public class TransactionController {
     }
 
     @PostMapping("/intercept")
-    public ResponseEntity<TransactionResponseDTO>  interceptTransaction(@RequestBody  TransactionRequestDTO  dto, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<TransactionResponseDTO>>  interceptTransaction(@RequestBody  TransactionRequestDTO  dto, HttpServletRequest request) {
         String ipAddress = request.getHeader("X-Forwarded-For");
         if (ipAddress == null || ipAddress.isEmpty()) {
             ipAddress = request.getRemoteAddr();
         }
         TransactionResponseDTO response = transactionService.processTransaction(dto, ipAddress);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response, "Transaction intercepted successfully"));
     }
 }

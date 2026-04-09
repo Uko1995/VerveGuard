@@ -2,12 +2,14 @@ package com.example.VerveGaurd;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
+@EnableScheduling
 @SpringBootApplication
-public class VerveGaurdApplication {
+public class VerveGuardApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(VerveGaurdApplication.class, args);
+		SpringApplication.run(VerveGuardApplication.class, args);
 	}
 
 }

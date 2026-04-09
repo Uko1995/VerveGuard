@@ -26,19 +26,29 @@ public class Merchant {
     @Column(nullable = false)
     private String email;
 
-    private static final short blacklistDurationMinutes = 5;
+    private static final short BLACKLIST_DURATION_MINUTES = 5;
 
-    private boolean isBlacklisted = false;
+    @Column(name = "blacklisted", nullable = false)
+    private boolean blacklisted = false;
 
+    @Column(name = "blacklistedAt")
     private LocalDateTime blacklistedAt;
+
+    @Column(name = "createdAt")
     private LocalDateTime createdAt;
 
+    public boolean isCurrentlyBlacklisted() {
+        return blacklistedAt != null &&
+                LocalDateTime.now().isBefore(
+                        blacklistedAt.plusMinutes(BLACKLIST_DURATION_MINUTES)
+                );
+    }
+
     public boolean isBlacklistExpired() {
-        if (!isBlacklisted || blacklistedAt == null) {
-            return false;
-        }
-        LocalDateTime expiryTime = blacklistedAt.plusMinutes(blacklistDurationMinutes);
-        return LocalDateTime.now().isAfter(expiryTime);
+        return blacklistedAt != null &&
+                LocalDateTime.now().isAfter(
+                        blacklistedAt.plusMinutes(BLACKLIST_DURATION_MINUTES)
+                );
     }
 
 
