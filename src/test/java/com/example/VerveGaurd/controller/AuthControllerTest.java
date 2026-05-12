@@ -1,6 +1,6 @@
 package com.example.VerveGaurd.controller;
 
-import com.example.VerveGaurd.VerveGaurdApplication;
+import com.example.VerveGaurd.config.TestConfig;
 import com.example.VerveGaurd.dto.AdminLoginDTO;
 import com.example.VerveGaurd.dto.AdminResponseDTO;
 import com.example.VerveGaurd.dto.CreateAdminRequestDto;
@@ -9,12 +9,11 @@ import com.example.VerveGaurd.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -25,12 +24,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest
+@Import(TestConfig.class)
 class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @Autowired
+    @SuppressWarnings("unused")
     private AuthService authService;
 
     @Autowired
@@ -69,7 +70,7 @@ class AuthControllerTest {
         CreateAdminRequestDto request = new CreateAdminRequestDto();
         request.setName("Test Admin");
         request.setEmail("test@example.com");
-        request.setPassword("password");
+        request.setPassword("Password@123");
 
         AdminResponseDTO response = new AdminResponseDTO();
         response.setName("Test Admin");

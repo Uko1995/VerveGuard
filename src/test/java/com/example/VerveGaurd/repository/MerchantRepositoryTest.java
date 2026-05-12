@@ -3,9 +3,10 @@ package com.example.VerveGaurd.repository;
 import com.example.VerveGaurd.model.Merchant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -17,6 +18,9 @@ class MerchantRepositoryTest {
 
     @Autowired
     private MerchantRepository merchantRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     void findByIdFresh_shouldReturnMerchant() {
@@ -49,12 +53,16 @@ class MerchantRepositoryTest {
         merchant.setCreatedAt(LocalDateTime.now());
 
         merchantRepository.save(merchant);
+        entityManager.flush(); // Ensure merchant is saved to DB
 
         // When
         int updated = merchantRepository.clearExpired(LocalDateTime.now().minusMinutes(5));
 
         // Then
         assertEquals(1, updated);
+
+        // Clear session to force refresh from DB
+        entityManager.clear();
 
         Merchant updatedMerchant = merchantRepository.findById(merchant.getId()).orElseThrow();
         assertFalse(updatedMerchant.isBlacklisted());
