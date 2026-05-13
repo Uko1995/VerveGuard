@@ -21,17 +21,17 @@ public class TransactionRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void save(TransactionRequestDTO dto, boolean isFlagged, String reason, String ipAddress) {
+    public void save(TransactionRequestDTO dto, boolean isFlagged, String reason, String ipAddress, String traceId) {
         String sql;
         sql = """
                 INSERT INTO transactionRequests
-                    (amount, cardNumber, ipAddress, merchantId, isFlagged, reason, status)
-                    VALUES (?,?,?,?,?,?,?)
+                    (amount, cardNumber, ipAddress, merchantId, isFlagged, reason, status, traceId)
+                    VALUES (?,?,?,?,?,?,?,?)
                 """;
 
         jdbcTemplate.update(sql, dto.getAmount(),
                 encryptionUtil.encrypt(dto.getCardNumber()), ipAddress, dto.getMerchantId(),
-                isFlagged, reason, isFlagged ? "FLAGGED" : "APPROVED");
+                isFlagged, reason, isFlagged ? "FLAGGED" : "APPROVED", traceId);
     }
 
     public List<BlacklistedMerchantsResponse> findAllFlaggedWithMerchantDetails() {

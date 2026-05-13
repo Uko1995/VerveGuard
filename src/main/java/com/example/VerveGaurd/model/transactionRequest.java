@@ -34,4 +34,7 @@ public class transactionRequest {
     private boolean isFlagged;
     private String reason;
     private LocalDateTime createdAt;
+
+    @Column(name = "traceId", nullable = true)
+    private String traceId;
 }

@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
  @Service
  @RequiredArgsConstructor
- @Transactional
  @Slf4j
 public class TransactionService {
      private final MerchantRepository merchantRepository;
@@ -24,32 +23,25 @@ public class TransactionService {
 
 
 
-     @Transactional
      public TransactionResponseDTO processTransaction(TransactionRequestDTO dto, String ipAddress) {
 
          Merchant merchant = merchantRepository.findByIdFresh(dto.getMerchantId())
                  .orElseThrow(() -> new ResourceNotFoundException("Merchant with this ID does not exist"));
 
-         log.debug("Merchant ID: {}, Blacklisted: {}", merchant.getId(), merchant.isBlacklisted());
-
-         TransactionResponseDTO response = new TransactionResponseDTO();
-
-
-
          // check 1: if merchant is already blacklisted
-
          if (merchant.isCurrentlyBlacklisted()) {
+             if (log.isDebugEnabled()) {
+                 log.debug("Merchant ID: {}, Blacklisted: true", merchant.getId());
+             }
              log.info("Merchant IS blacklisted - checking expiry");
              transactionLogService.logFlaggedTransaction(dto, ipAddress);
 
+             TransactionResponseDTO response = new TransactionResponseDTO();
              response.setReason("Blacklisted Merchant");
              response.setStatus(Status.FLAGGED);
              response.setFlagged(true);
              return response;
-
          }
-
-         // Continue normal flow if not blacklisted or blacklist expired
 
          // check 2: check rate limiting by IP
          if (rateLimiterService.isRateLimited(ipAddress)) {
@@ -63,7 +55,8 @@ public class TransactionService {
              throw new RateLimitException(ipAddress);
          }
 
-         //else return as cleared
+         // else return as cleared
+         TransactionResponseDTO response = new TransactionResponseDTO();
          response.setStatus(Status.APPROVED);
          response.setReason("Merchant Cleared");
          response.setFlagged(false);

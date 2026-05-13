@@ -34,6 +34,9 @@ public class Merchant {
     @Column(name = "blacklistedAt")
     private LocalDateTime blacklistedAt;
 
+    @Column(name = "isPreviouslyFlagged")
+    private boolean isPreviouslyFlagged = false;
+
     @Column(name = "createdAt")
     private LocalDateTime createdAt;
 

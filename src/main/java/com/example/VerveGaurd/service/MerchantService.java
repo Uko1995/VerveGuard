@@ -38,6 +38,7 @@ public class MerchantService {
             merchant.setCardNumber(dto.getCardNumber());
             merchant.setCreatedAt(LocalDateTime.now());
             merchant.setBlacklistedAt(null);
+            merchant.setPreviouslyFlagged(false);
             return merchant;
         }).toList();
 
@@ -55,6 +56,7 @@ public class MerchantService {
     public  void blacklistMerchant(Merchant merchant) {
         merchant.setBlacklisted(true);
         merchant.setBlacklistedAt(LocalDateTime.now());
+        merchant.setPreviouslyFlagged(true);
         merchantRepository.saveAndFlush(merchant);
         log.info("Merchant {} blacklisted and committed to DB", merchant.getId());
     }

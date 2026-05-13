@@ -5,8 +5,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+
+import java.util.UUID;
 
 @Component
 public class PerformanceInterceptor implements HandlerInterceptor {
@@ -17,8 +20,20 @@ public class PerformanceInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request,
                              @NonNull HttpServletResponse response,
                              @NonNull Object handler) {
-        request.setAttribute("startTime", System.currentTimeMillis());
-        request.setAttribute("requestId", generateRequestId()); // unique ID per request
+        long startTime = System.currentTimeMillis();
+        String traceId = UUID.randomUUID().toString();
+        
+        request.setAttribute("startTime", startTime);
+        request.setAttribute("traceId", traceId);
+        
+        // Put traceId in MDC so it appears in all logs for this request
+        MDC.put("traceId", traceId);
+        
+        // Log separator for readability
+        log.info("=".repeat(100));
+        log.info("➤ REQUEST START | traceId={} | {} {}", traceId, request.getMethod(), request.getRequestURI());
+        log.info("=".repeat(100));
+
         return true;
     }
 
@@ -29,7 +44,7 @@ public class PerformanceInterceptor implements HandlerInterceptor {
                                 Exception ex) {
 
         long start = (Long) request.getAttribute("startTime");
-        String requestId = (String) request.getAttribute("requestId");
+        String traceId = (String) request.getAttribute("traceId");
         long duration = System.currentTimeMillis() - start;
 
         AuditLog auditLog = new AuditLog(
@@ -39,23 +54,25 @@ public class PerformanceInterceptor implements HandlerInterceptor {
                 duration
         );
 
+        StringBuilder notes = new StringBuilder();
+        notes.append(String.format("traceId=%s | httpStatus=%d | duration=%dms", traceId, response.getStatus(), duration));
+
         if (ex != null) {
-            auditLog.setNotes("EXCEPTION: " + ex.getMessage());
+            notes.append(" | EXCEPTION: ").append(ex.getMessage());
         }
 
-        auditLog.setNotes(
-                String.format("requestId=%s | httpStatus=%d", requestId, response.getStatus())
-        );
+        auditLog.setNotes(notes.toString());
 
         if ("SLOW".equals(auditLog.getStatus())) {
-            log.warn(auditLog.toString());
+            log.warn("⚠ [SLOW] {}", auditLog.toString());
         } else {
-            log.info(auditLog.toString());
+            log.info("✓ {}", auditLog.toString());
         }
-    }
 
-    private String generateRequestId() {
-        // simple unique ID for tracing a request through all log lines
-        return "REQ-" + System.currentTimeMillis();
+        // Log separator for readability
+        log.info("─".repeat(100));
+
+        // Clean up MDC to prevent memory leaks
+        MDC.remove("traceId");
     }
 }
